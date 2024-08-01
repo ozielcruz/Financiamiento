@@ -1,0 +1,51 @@
+function calcularFinanciamiento() {
+    const precioVehiculo = parseFloat(document.getElementById('precioVehiculo').value);
+    const enganchePercent = parseFloat(document.getElementById('enganchePercent').value);
+    const tasaInteresAnual = parseFloat(document.getElementById('tasaInteresAnual').value);
+    const plazoAnos = parseInt(document.getElementById('plazoAnos').value);
+
+    if (isNaN(precioVehiculo) || isNaN(enganchePercent) || isNaN(tasaInteresAnual) || isNaN(plazoAnos)) {
+        alert("Por favor, ingrese valores válidos.");
+        return;
+    }
+
+    const pagoInicial = precioVehiculo * (enganchePercent / 100);
+    const montoPrestamo = precioVehiculo - pagoInicial;
+    const pagoMensual = calcularPagoMensual(montoPrestamo, tasaInteresAnual, plazoAnos);
+
+    const resultadoDiv = document.getElementById('resultado');
+    resultadoDiv.innerHTML = `
+        <h2>Resumen del Préstamo:</h2>
+        <p>Precio del vehículo: $${precioVehiculo.toLocaleString('es-MX', {minimumFractionDigits: 2})}</p>
+        <p>Enganche: $${pagoInicial.toLocaleString('es-MX', {minimumFractionDigits: 2})} (${enganchePercent}%)</p>
+        <p>Monto del préstamo: $${montoPrestamo.toLocaleString('es-MX', {minimumFractionDigits: 2})}</p>
+        <p>Plazo del préstamo: ${plazoAnos} años</p>
+        <p>Pago mensual estimado: $${pagoMensual.toLocaleString('es-MX', {minimumFractionDigits: 2})}</p>
+        <h2>Plan de Pagos:</h2>
+        <pre>${planDePagos(montoPrestamo, tasaInteresAnual, plazoAnos)}</pre>
+    `;
+}
+
+function calcularPagoMensual(montoPrestamo, tasaInteresAnual, plazoAnos) {
+    const tasaInteresMensual = tasaInteresAnual / 12 / 100;
+    const numeroPagos = plazoAnos * 12;
+    const pagoMensual = (montoPrestamo * tasaInteresMensual) / (1 - (1 + tasaInteresMensual) ** -numeroPagos);
+    return pagoMensual;
+}
+
+function planDePagos(montoPrestamo, tasaInteresAnual, plazoAnos) {
+    const pagoMensual = calcularPagoMensual(montoPrestamo, tasaInteresAnual, plazoAnos);
+    const tasaInteresMensual = tasaInteresAnual / 12 / 100;
+    let saldo = montoPrestamo;
+    let plan = "Mes\tPago Mensual\tInterés\tPrincipal\tSaldo\n";
+    plan += "-----------------------------------------------------\n";
+
+    for (let mes = 1; mes <= plazoAnos * 12; mes++) {
+        const interes = saldo * tasaInteresMensual;
+        const principal = pagoMensual - interes;
+        saldo -= principal;
+        plan += `${mes}\t$${pagoMensual.toLocaleString('es-MX', {minimumFractionDigits: 2})}\t$${interes.toLocaleString('es-MX', {minimumFractionDigits: 2})}\t$${principal.toLocaleString('es-MX', {minimumFractionDigits: 2})}\t$${saldo.toLocaleString('es-MX', {minimumFractionDigits: 2})}\n`;
+    }
+
+    return plan;
+}
